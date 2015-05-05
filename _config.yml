@@ -1,0 +1,17 @@
+# Site settings
+title: ISimpleCoder Blog
+header-img: img/home-bg.jpg
+email: sbattina@yahoo.com
+description: "Issues, resolutions and tutorials related to coding"
+baseurl: ""
+url: ""
+twitter_username: 
+github_username:  isimplecoder
+facebook_username:  
+
+# Build settings
+markdown: kramdown
+highlighter: pygments
+permalink: pretty
+paginate: 5
+exclude: ["less","node_modules","Gruntfile.js","package.json","README.md"]
