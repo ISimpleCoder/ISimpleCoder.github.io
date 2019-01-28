@@ -7,10 +7,10 @@ author:     "Sri Battina"
 header-img: "img/post-bg-01.jpg"
 ---
 
-<p>Recently while trying to debug JMS message bridge, we enabled debugging for MessagingBridge, JMS, etc. We also updated the message bridge configuration so we had to restart all servers in the domain. During this restart, one of the managed servers is failing to start with the following exception.</p>
+Recently while trying to debug JMS message bridge, we enabled debugging for MessagingBridge, JMS, etc. We also updated the message bridge configuration so we had to restart all servers in the domain. During this restart, one of the managed servers is failing to start with the following exception.
 
 
-{% highlight bash %}
+```
 
   <Jan 26, 2019, 2:24:01,674 AM CST> <Warning> <JMX> <localhost> <msosb2> <[ACTIVE] ExecuteThread: '7' for queue: 'weblogic.kernel.Default (self-tuning)'> <<WLS Kernel>> <> <> <1548491041674> <[severity-value: 16] [partition-id: 0] [partition-name: DOMAIN] > <BEA-149513> <JMX Connector Server stopped at service:jmx:iiop://localhost:7101/jndi/weblogic.management.mbeanservers.runtime.>
   <Jan 26, 2019, 2:24:01,733 AM CST> <Critical> <WebLogicServer> <localhost> <msosb2> <main> <<WLS Kernel>> <> <> <1548491041733> <[severity-value: 4] [partition-id: 0] [partition-name: DOMAIN] > <BEA-000386> <Server subsystem failed. Reason: A MultiException has 6 exceptions.  They are:
@@ -85,18 +85,19 @@ header-img: "img/post-bg-01.jpg"
   >
   <Jan 26, 2019, 2:24:01,748 AM CST> <Error> <WebLogicServer> <localhost> <msosb2> <main> <<WLS Kernel>> <> <> <1548491041748> <[severity-value: 8] [partition-id: 0] [partition-name: DOMAIN] > <BEA-000383> <A critical service failed. The server will shut itself down.>
 
-{% endhighlight %}
+```
 
-<p>Looking at the exception stack trace, I identified that server is failing because of some logging issue. My initial thought was something got corrupted when we enabled debug logging, so we reverted the debug logging configuration and tried to restart. Again same issue.</p>
+Looking at the exception stack trace, I identified that server is failing because of some logging issue. My initial thought was something got corrupted when we enabled debug logging, so we reverted the debug logging configuration and tried to restart. Again same issue.
 
-<p>Next we cleaned the "tmp", "cache", etc. and tried to start but the server wouldn't come up.</p>
+Next we cleaned the "tmp", "cache", etc. and tried to start but the server wouldn't come up.
 
-<p>Next we shutdown the whole domain (admin and managed servers) and cleaned "tmp", "cache", etc. and tried to restart. That one managed server wouldn't start.</p>
+Next we shutdown the whole domain (admin and managed servers) and cleaned "tmp", "cache", etc. and tried to restart. That one managed server wouldn't start.
 
-<p>At this point we were desperate, so we paged storage team to revert all file system changes back by one day. I was also frantically searching the internet and Oracle support site. Finally there was a hit on Oracle support site, with exactly same problem and a <a href="https://support.oracle.com/epmos/faces/DocumentDisplay?_afrLoop=6097784253443&id=2240131.1&displayIndex=2&_afrWindowMode=0&_adf.ctrl-state=8dzc50cad_77#SYMPTOM">solution</a>. </p>
+At this point we were desperate, so we paged storage team to revert all file system changes back by one day. I was also frantically searching the internet and Oracle support site. Finally there was a hit on Oracle support site, with exactly same problem and a [solution](https://support.oracle.com/epmos/faces/DocumentDisplay?_afrLoop=6097784253443&id=2240131.1&displayIndex=2&_afrWindowMode=0&_adf.ctrl-state=8dzc50cad_77#SYMPTOM).
 
-<p>Apparently Weblogic reads access log during startup (who would have thought about it). The access log of the failing managed server is well over 1G, since the default size of array is 1G the server is failing with outOfMemoryError. We renamed the access log and the server came up without a glitch.</p>
+Apparently Weblogic reads access log during startup (who would have thought about it). The access log of the failing managed server is well over 1G, since the default size of array is 1G the server is failing with outOfMemoryError. We renamed the access log and the server came up without a glitch.
 
-<p>Lesson Learned: If you to do a clean restart of Weblogic domain/server, back-up and delete the logs too.</p>
+**Lesson Learned:**
+> If you want to do a clean restart of Weblogic domain/server, back-up and delete the logs too.
 
 Thanks for entertaining my ramble. Hope this has been a productive experience.
